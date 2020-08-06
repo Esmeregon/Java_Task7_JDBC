@@ -1,6 +1,7 @@
 import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class DB {
 
@@ -17,6 +18,7 @@ public class DB {
         }
         return null;
     }
+
 
     public static String selectCustomerId(String faId) {
         String query = "select tc.s_customer_id\n" +
@@ -39,48 +41,46 @@ public class DB {
         return customerId;
     }
 
-public static Map<String, String> selectOutflow(String customerId) {
-    String query1 = "select hg.objid, hg.title\n" +
+
+    public static List selectOutflow(String customerId){
+        String query = "select hg.objid, hg.title\n" +
             "from table_customer tc\n" +
             "join table_hgbst_elm hg\n" +
             "on tc.x_propensity_drain2hgbst_elm = hg.objid\n" +
             "where tc.s_customer_id = '" + customerId + "'";
-    String outflow = "";
-    String hgObjid = "";
-    try (Connection con = getConnection();
-         PreparedStatement statement = con.prepareStatement(query1);
-         ResultSet result = statement.executeQuery()) {
+        String outflow = "";
+        String hgObjid = "";
+        try (Connection con = getConnection();
+             PreparedStatement statement = con.prepareStatement(query);
+             ResultSet result = statement.executeQuery()) {
         while (result.next()) {
             hgObjid = result.getString(1);
             outflow = result.getString(2);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    Map<String, String> res = new HashMap<>();
-    res.put(outflow, hgObjid);
-    return res;
-    }
-
-
-    public static void updateOutflow(Map<String, String> res, String customerId) {
-
-        for (Map.Entry<String, String> entry : res.entrySet()) {
-
-            if (entry.getValue().equals("5912") ){
-                entry.setValue("5911");
-            } else {
-                entry.setValue("5912");
             }
-            String query1 = "update table_customer\n" +
-                    "   set x_propensity_drain2hgbst_elm = " + entry.getValue() + "\n" +
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        List<String> listOutflow = new ArrayList<>();
+        listOutflow.add(hgObjid);
+        listOutflow.add(outflow);
+        return listOutflow;
+    }
+
+
+    public static void updateOutflow(String outflowObjid, String customerId) {
+
+            String query = "update table_customer\n" +
+                    "   set x_propensity_drain2hgbst_elm = " + outflowObjid + "\n" +
                     " where s_customer_id = '" + customerId + "'";
             try (Connection con = getConnection();
-                 PreparedStatement statement = con.prepareStatement(query1);) {
+                 PreparedStatement statement = con.prepareStatement(query);) {
                 statement.executeUpdate();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+
     }
-}
+
+
